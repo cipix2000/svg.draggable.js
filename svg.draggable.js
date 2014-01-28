@@ -74,13 +74,13 @@ SVG.extend(SVG.Element, {
     }
     
     /* find the drop target, if any */
-    findtarget = function(x, y) {
+    findtarget = function(x, y, element) {
       var targets = [];
       parent.each(function() {
         if (this.isdroptarget) {
           var rbox = this.rbox();
           var bbox = this.bbox();
-          if (this.inside(x, y ) ) {
+          if (this !== element && this.inside(x, y ) ) {
             targets.push(this);
           }
         }
@@ -135,8 +135,7 @@ SVG.extend(SVG.Element, {
           element.dragmove(delta, event)
 
         /* invoke dragover callbacks */
-        target = findtarget(event.clientX - parent.parent.offsetLeft, event.clientY - parent.parent.offsetTop)
-        //target = findtarget(event.clientX - element.doc().parent.offsetLeft, event.clientY - element.doc().parent.offsetTop);
+        target = findtarget(event.clientX - parent.parent.offsetLeft, event.clientY - parent.parent.offsetTop, element)
         
         if (element.lastdroptarget != target) {
           if (element.lastdroptarget && element.lastdroptarget.dragleave)
