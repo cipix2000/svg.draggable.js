@@ -47,6 +47,7 @@ SVG.extend(SVG.Element, {
       
       /* store event */
       element.startEvent = event
+      element.lastdroptarget = null
       
       /* store start position */
       element.startPosition = {
@@ -72,6 +73,22 @@ SVG.extend(SVG.Element, {
       event.stopPropagation();
     }
     
+    /* find the drop target, if any */
+    findtarget = function(x, y) {
+      var targets = [];
+      parent.each(function() {
+        if (this.isdroptarget) {
+          var rbox = this.rbox();
+          var bbox = this.bbox();
+          if (this.inside(x, y ) ) {
+            targets.push(this);
+          }
+        }
+      },true)
+      
+      return targets.pop();
+    }
+
     /* while dragging */
     drag = function(event) {
       event = event || window.event
@@ -87,8 +104,9 @@ SVG.extend(SVG.Element, {
               y:    event.pageY - element.startEvent.pageY,
               zoom: element.startPosition.zoom
             }
+          , target
         
-        /* caculate new position [with rotation correction] */
+        /* calculate new position [with rotation correction] */
         x = element.startPosition.x + (delta.x * Math.cos(rotation) + delta.y * Math.sin(rotation))  / element.startPosition.zoom
         y = element.startPosition.y + (delta.y * Math.cos(rotation) + delta.x * Math.sin(-rotation)) / element.startPosition.zoom
         
@@ -115,6 +133,23 @@ SVG.extend(SVG.Element, {
         /* invoke any callbacks */
         if (element.dragmove)
           element.dragmove(delta, event)
+
+        /* invoke dragover callbacks */
+        target = findtarget(event.clientX - parent.parent.offsetLeft, event.clientY - parent.parent.offsetTop)
+        //target = findtarget(event.clientX - element.doc().parent.offsetLeft, event.clientY - element.doc().parent.offsetTop);
+        
+        if (element.lastdroptarget != target) {
+          if (element.lastdroptarget && element.lastdroptarget.dragleave)
+            element.lastdroptarget.dragleave(event, element);
+            
+          if (target && target.dragenter)
+            target.dragenter(event, element)
+            
+          element.lastdroptarget = target
+        }
+
+        if (target && target.dragover)
+          target.dragover(event, element)
       }
     }
     
@@ -137,6 +172,10 @@ SVG.extend(SVG.Element, {
       SVG.off(window, 'mousemove', drag)
       SVG.off(window, 'mouseup',   end)
 
+      if (element.lastdroptarget && element.lastdroptarget.drop) {
+        element.lastdroptarget.drop(element);
+      }
+      
       /* invoke any callbacks */
       if (element.dragend)
         element.dragend(delta, event)
@@ -159,5 +198,8 @@ SVG.extend(SVG.Element, {
     
     return this
   }
-  
+  // Make the element a drop target
+  ,droptarget: function() {
+    this.isdroptarget = true
+  }
 })
