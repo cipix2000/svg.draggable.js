@@ -20,6 +20,11 @@ SVG.extend(SVG.Element, {
       
       var box
       
+      if (event.button === 2 || event.ctrlKey) {
+        //don't drag with the right mouse button
+        return;
+      }
+
       /* invoke any callbacks */
       if (element.beforedrag)
         element.beforedrag(event)
@@ -63,6 +68,8 @@ SVG.extend(SVG.Element, {
       
       /* prevent selection dragging */
       event.preventDefault ? event.preventDefault() : event.returnValue = false
+      /* prevent dragging the elements under the current one*/
+      event.stopPropagation();
     }
     
     /* while dragging */
