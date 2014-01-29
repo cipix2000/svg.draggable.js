@@ -130,12 +130,12 @@ SVG.extend(SVG.Element, {
         /* move the element to its new position */
         element.move(x, y)
 
-        /* invoke any callbacks */
-        if (element.dragmove)
-          element.dragmove(delta, event)
-
         /* invoke dragover callbacks */
         target = findtarget(event.clientX - parent.parent.offsetLeft, event.clientY - parent.parent.offsetTop, element)
+
+                /* invoke any callbacks */
+        if (element.dragmove)
+          element.dragmove(delta, event, target)
         
         if (element.lastdroptarget != target) {
           if (element.lastdroptarget && element.lastdroptarget.dragleave)
@@ -177,7 +177,7 @@ SVG.extend(SVG.Element, {
       
       /* invoke any callbacks */
       if (element.dragend)
-        element.dragend(delta, event)
+        element.dragend(delta, event, element.lastdroptarget)
     }
     
     /* bind mousedown event */
