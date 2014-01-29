@@ -201,9 +201,11 @@ SVG.extend(SVG.Element, {
   // Make the element dropable
   dropable: function() {
     this.isdropable = true
+    return this
   },
   // Make the element a drop target
   droptarget: function() {
     this.isdroptarget = true
+    return this
   }
 })
