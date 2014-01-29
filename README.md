@@ -1,6 +1,6 @@
 # svg.draggable.js
 
-A plugin for the [svgjs.com](http://svgjs.com) library to make elements draggable.
+A plugin for the [svgjs.com](http://svgjs.com) library to make th elements draggable/droppable.
 
 Svg.draggable.js is licensed under the terms of the MIT License.
 
@@ -18,8 +18,34 @@ rect.draggable()
 
 Yes indeed, that's it! Now the `rect` is draggable.
 
+To make an element dropable
+
+```javascript
+var draw = SVG('canvas').size(400, 400)
+var rect = draw.rect(100, 100)
+
+rect.draggable().dropable()
+```
+
+Now the `rect` is draggable and dropable.
+
+To make an element a drop target
+
+```javascript
+var draw = SVG('canvas').size(400, 400)
+var rect = draw.rect(100, 100)
+var bigrect = draw.rect(200, 200).move(200,200)
+
+rect.droptarget()
+```
+
+Now the `bigrect` is a drop target.
+
+
 ## Callbacks
-There are four different callbacks available, `beforedrag`, `dragstart`, `dragmove` and `dragend`. This is how you assign them:
+There are eight different callbacks available, `beforedrag`, `dragstart`, `dragmove`, `dragend`, `dragover`, `dragenter`, `dragleave` and `drop`. 
+
+Four of the callbacks are available on the draggable element. This is how you assign them:
 
 ```javascript
 rect.dragstart = function() {
@@ -35,13 +61,31 @@ rect.beforestart = function(event) {
 }
 ```
 
-The `dragstart`, `dragmove` and `dragend` callbacks will pass the delta values as an object in the first argument and the event as the second:
+The `dragstart` callback will pass the delta values as an object in the first argument and the event as the second:
 
 ```javascript
-rect.dragmove = function(delta, event) {
+rect.dragstart = function(delta, event) {
   console.log(delta.x, delta.y)
 }
 ```
+
+The `dragmove` and `dragend` callbacks will pass the delta values as an object in the first argument, the event as the second and the target element as the third. The target element is a drop target element that is under the element being dragged:
+
+```javascript
+rect.dragmove = function(delta, event, target) {
+  console.log(delta.x, delta.y)
+}
+```
+
+
+The other four callbacks, `dragover`, `dragenter`, `dragleave` and `drop`, are available on the droptarget elements. Two parameters are passed to the callbacks - the event and the element being dragged. Only dropable elements generate these callbacks.
+
+```javascript
+rect.dragenter = function(event, element) {
+  ...do your thing...
+}
+```
+
 
 ## Constraint
 The drag functionality can be limited within a given box. You can pass the the constraint values as an object:
@@ -57,7 +101,7 @@ rect.draggable({
 
 
 ## Remove
-The draggable functionality van be removed with the `fixed()` method:
+The draggable functionality can be removed with the `fixed()` method:
 
 ```javascript
 rect.fixed()
