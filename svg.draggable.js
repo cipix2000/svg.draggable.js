@@ -76,16 +76,17 @@ SVG.extend(SVG.Element, {
     /* find the drop target, if any */
     findtarget = function(x, y, element) {
       var targets = [];
-      parent.each(function() {
-        if (this.isdroptarget) {
-          var rbox = this.rbox();
-          var bbox = this.bbox();
-          if (this !== element && this.inside(x, y ) ) {
-            targets.push(this);
+      if (element.isdroptarget) {
+        parent.each(function() {
+          if (this.isdroptarget) {
+            var rbox = this.rbox();
+            var bbox = this.bbox();
+            if (this !== element && this.inside(x, y ) ) {
+              targets.push(this);
+            }
           }
-        }
-      },true)
-      
+        },true)
+      }
       return targets.pop();
     }
 
@@ -196,9 +197,13 @@ SVG.extend(SVG.Element, {
     }
     
     return this
-  }
+  },
+  // Make the element dropable
+  dropable: function() {
+    this.isdropable = true
+  },
   // Make the element a drop target
-  ,droptarget: function() {
+  droptarget: function() {
     this.isdroptarget = true
   }
 })
