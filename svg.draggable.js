@@ -76,7 +76,7 @@ SVG.extend(SVG.Element, {
     /* find the drop target, if any */
     findtarget = function(x, y, element) {
       var targets = [];
-      if (element.isdroptarget) {
+      if (element.isdropable) {
         parent.each(function() {
           if (this.isdroptarget) {
             var rbox = this.rbox();
