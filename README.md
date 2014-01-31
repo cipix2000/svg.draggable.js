@@ -45,7 +45,7 @@ Now the `bigrect` is a drop target.
 ## Callbacks
 There are eight different callbacks available, `beforedrag`, `dragstart`, `dragmove`, `dragend`, `dragover`, `dragenter`, `dragleave` and `drop`. 
 
-Four of the callbacks are available on the draggable element. This is how you assign them:
+Four of the callbacks, `beforedrag`, `dragstart`, `dragmove` and `dragend` are available on the draggable element. This is how you assign them:
 
 ```javascript
 rect.dragstart = function() {
@@ -78,7 +78,7 @@ rect.dragmove = function(delta, event, target) {
 ```
 
 
-The other four callbacks, `dragover`, `dragenter`, `dragleave` and `drop`, are available on the droptarget elements. Two parameters are passed to the callbacks - the event and the element being dragged. Only dropable elements generate these callbacks.
+The other four callbacks, `dragover`, `dragenter`, `dragleave` and `drop`, are invoked on the droptarget elements. Two parameters are passed to the callbacks - the event and the element being dragged. Dropable elements generate these callbacks when dragged over a droptarget element.
 
 ```javascript
 rect.dragenter = function(event, element) {
