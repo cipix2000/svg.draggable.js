@@ -1,6 +1,11 @@
 // svg.draggable.js 0.12 - Copyright (c) 2013 Wout Fierens - Licensed under the MIT license
 
 SVG.extend(SVG.Element, {
+  // Make element selectable
+  selectable: function() {
+    this.isselectable = true
+    return this  
+  },
   // Make element draggable
   draggable: function(constraint) {
     var start, drag, end
@@ -13,6 +18,19 @@ SVG.extend(SVG.Element, {
     
     /* ensure constraint object */
     constraint = constraint || {}
+
+    select = function(event) {
+      if (event.button === 2 || event.ctrlKey) 
+        return
+
+      if (this.isselectable) {
+        if (element.select)
+          element.select(event)
+
+        // unselect the currently selected element. how ?
+      }
+      start(event)
+    }
     
     /* start dragging */
     start = function(event) {
@@ -128,6 +146,10 @@ SVG.extend(SVG.Element, {
         else if (constraint.maxY != null && y > constraint.maxY - height)
           y = constraint.maxY - height
         
+        if (0 /*need to fire start drag events*/) {
+          // fire start drag events
+          // disable need to fire start drag events
+        }
         /* move the element to its new position */
         element.move(x, y)
 

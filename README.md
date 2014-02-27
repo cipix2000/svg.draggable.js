@@ -1,11 +1,21 @@
 # svg.draggable.js
 
-A plugin for the [svgjs.com](http://svgjs.com) library to make th elements draggable/droppable.
+A plugin for the [svgjs.com](http://svgjs.com) library to make the elements selectable, draggable and droppable.
 
 Svg.draggable.js is licensed under the terms of the MIT License.
 
 ## Usage
 Include this plugin after including the svg.js library in your html document.
+
+To make the element selectable
+
+```javascript
+var draw = SVG('canvas').size(400, 400)
+var rect = draw.rect(100, 100)
+
+rect.selectable()
+```
+Now the  `rect` is selectable
 
 To make an element draggable
 
@@ -13,10 +23,11 @@ To make an element draggable
 var draw = SVG('canvas').size(400, 400)
 var rect = draw.rect(100, 100)
 
-rect.draggable()
+rect.draggable(10)
 ```
 
-Yes indeed, that's it! Now the `rect` is draggable.
+Yes indeed, that's it! Now the `rect` is draggable. The draggable function takes an optional argument,
+stickyRadius, 10 in the example above, which specifies how much the element resists unintended dragging, in pixels.
 
 To make an element dropable
 
@@ -43,7 +54,15 @@ Now the `bigrect` is a drop target.
 
 
 ## Callbacks
-There are eight different callbacks available, `beforedrag`, `dragstart`, `dragmove`, `dragend`, `dragover`, `dragenter`, `dragleave` and `drop`. 
+There are ten different callbacks available, `select`, `unselect`, `beforedrag`, `dragstart`, `dragmove`, `dragend`, `dragover`, `dragenter`, `dragleave` and `drop`. 
+
+Two callbacks, `select` and `unselect` are available on the selectable elements.
+
+```javascript
+rect.select = function() {
+  ...do your thing, like coloring the element in a different color...
+}
+```
 
 Four of the callbacks, `beforedrag`, `dragstart`, `dragmove` and `dragend` are available on the draggable element. This is how you assign them:
 
