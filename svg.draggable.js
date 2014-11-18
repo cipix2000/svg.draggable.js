@@ -1,4 +1,4 @@
-// svg.draggable.js 0.12 - Copyright (c) 2013 Wout Fierens - Licensed under the MIT license
+/** svg.draggable.js 0.12 - Copyright (c) 2013 Wout Fierens - Licensed under the MIT license*/
 
 SVG.extend(SVG.Element, {
   // Make element selectable
@@ -8,7 +8,7 @@ SVG.extend(SVG.Element, {
   },
   // Make element draggable
   draggable: function(constraint) {
-    var start, drag, end
+      var select, start, drag, end
       , element = this
       , parent  = this.parent._parent(SVG.Nested) || this._parent(SVG.Doc)
     
@@ -19,36 +19,25 @@ SVG.extend(SVG.Element, {
     /* ensure constraint object */
     constraint = constraint || {}
 
+      constraint.stickyRadius = constraint.stickyRadius || 10
+
     select = function(event) {
       if (event.button === 2 || event.ctrlKey) 
         return
 
-      if (this.isselectable) {
+        if (element.isselectable) {
         if (element.select)
           element.select(event)
 
         // unselect the currently selected element. how ?
       }
-      start(event)
-    }
-    
-    /* start dragging */
-    start = function(event) {
-      event = event || window.event
       
-      var box
-      
-      if (event.button === 2 || event.ctrlKey) {
-        //don't drag with the right mouse button
-        return;
+        element.notDraggingYet = true
+        start(event)
       }
 
-      /* invoke any callbacks */
-      if (element.beforedrag)
-        element.beforedrag(event)
-      
-      /* get element bounding box */
-      box = element.bbox()
+      var elementbbox = function (element) {
+        var box = element.bbox()
       
       if (element instanceof SVG.G) {
         box.x = element.trans.x
@@ -61,12 +50,27 @@ SVG.extend(SVG.Element, {
         , width:  element.attr('width')
         , height: element.attr('height')
         }
+
+        return box
+        }
+
+      /* start dragging */
+      start = function (event) {
+        event = event || window.event
+
+        var box
+
+        if (event.button === 2 || event.ctrlKey) {
+          //don't drag with the right mouse button
+          return
       }
       
       /* store event */
       element.startEvent = event
       element.lastdroptarget = null
       
+        /* get element bounding box */
+        box = elementbbox(element)
       /* store start position */
       element.startPosition = {
         x:        box.x
@@ -81,10 +85,6 @@ SVG.extend(SVG.Element, {
       SVG.on(window, 'mousemove', drag)
       SVG.on(window, 'mouseup',   end)
       
-      /* invoke any callbacks */
-      if (element.dragstart)
-        element.dragstart({ x: 0, y: 0, zoom: element.startPosition.zoom }, event)
-      
       /* prevent selection dragging */
       event.preventDefault ? event.preventDefault() : event.returnValue = false
       /* prevent dragging the elements under the current one*/
@@ -92,14 +92,17 @@ SVG.extend(SVG.Element, {
     }
     
     /* find the drop target, if any */
-    findtarget = function(x, y, element) {
+      var findtarget = function (x, y, element) {
       var targets = [];
       if (element.isdropable) {
         parent.each(function() {
           if (this.isdroptarget) {
-            var rbox = this.rbox();
-            var bbox = this.bbox();
-            if (this !== element && this.inside(x, y ) ) {
+              var rbox = this.rbox();
+              if (this !== element &&
+                x > rbox.x &&
+                y > rbox.y &&
+                x < rbox.x + rbox.width &&
+                y < rbox.y + rbox.height) {
               targets.push(this);
             }
           }
@@ -124,6 +127,46 @@ SVG.extend(SVG.Element, {
               zoom: element.startPosition.zoom
             }
           , target
+
+          if (element.notDraggingYet && (delta.x * delta.x + delta.y * delta.y) < (constraint.stickyRadius * constraint.stickyRadius)) {
+            // cursor still inside stickyRadius
+            return
+          } else {
+            /* invoke any callbacks */
+            if (element.notDraggingYet && element.beforedrag) {
+              /* element before drag is allowed to change the svg group of the element (bring it to front) or move it.
+            we need to resample the starting position */
+              element.beforedrag(event)
+              /* get element bounding box */
+              var box = elementbbox(element)
+                /* store start position */
+              element.startPosition = {
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height,
+                zoom: parent.viewbox().zoom,
+                rotation: element.transform('rotation') * Math.PI / 180
+              }
+
+              rotation = element.startPosition.rotation
+              width = element.startPosition.width
+              height = element.startPosition.height
+              delta = {
+                x: event.pageX - element.startEvent.pageX,
+                y: event.pageY - element.startEvent.pageY,
+                zoom: element.startPosition.zoom
+              }
+            }
+            if (element.notDraggingYet && element.dragstart)
+              element.dragstart({
+                x: 0,
+                y: 0,
+                zoom: element.startPosition.zoom
+              }, event)
+
+            element.notDraggingYet = false
+            }
         
         /* calculate new position [with rotation correction] */
         x = element.startPosition.x + (delta.x * Math.cos(rotation) + delta.y * Math.sin(rotation))  / element.startPosition.zoom
@@ -136,20 +179,16 @@ SVG.extend(SVG.Element, {
         }
         
         /* keep element within constrained box */
-        if (constraint.minX != null && x < constraint.minX)
+          if (constraint.minX !== null && x < constraint.minX)
           x = constraint.minX
-        else if (constraint.maxX != null && x > constraint.maxX - width)
+          else if (constraint.maxX !== null && x > constraint.maxX - width)
           x = constraint.maxX - width
         
-        if (constraint.minY != null && y < constraint.minY)
+          if (constraint.minY !== null && y < constraint.minY)
           y = constraint.minY
-        else if (constraint.maxY != null && y > constraint.maxY - height)
+          else if (constraint.maxY !== null && y > constraint.maxY - height)
           y = constraint.maxY - height
         
-        if (0 /*need to fire start drag events*/) {
-          // fire start drag events
-          // disable need to fire start drag events
-        }
         /* move the element to its new position */
         element.move(x, y)
 
@@ -194,21 +233,22 @@ SVG.extend(SVG.Element, {
       SVG.off(window, 'mousemove', drag)
       SVG.off(window, 'mouseup',   end)
 
-      if (element.lastdroptarget && element.lastdroptarget.drop) {
-        element.lastdroptarget.drop(element);
-      }
-      
       /* invoke any callbacks */
       if (element.dragend)
-        element.dragend(delta, event, element.lastdroptarget)
+          if (!element.notDraggingYet)
+        	element.dragend(delta, event, element.lastdroptarget)
+
+        if (element.lastdroptarget && element.lastdroptarget.drop) {
+          element.lastdroptarget.drop(element)
+        }
     }
     
     /* bind mousedown event */
-    element.on('mousedown', start)
+      element.on('mousedown', select)
     
     /* disable draggable */
     element.fixed = function() {
-      element.off('mousedown', start)
+        element.off('mousedown', select)
       
       SVG.off(window, 'mousemove', drag)
       SVG.off(window, 'mouseup',   end)
